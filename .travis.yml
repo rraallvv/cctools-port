@@ -1,16 +1,32 @@
 language: cpp
-dist: trusty
-sudo: required
 
-os:
-  - linux
+env:
+  global:
+    - SDK_URL=https://github.com/rraallvv/AppleSDKPacker/releases/download/xcode6.4/iPhoneOS8.4.sdk.tar.bz2
+    - SDK_FILE=${SDK_URL##*/}
+    - LIBTOOL_URL=https://ftp.gnu.org/gnu/libtool/libtool-2.4.6.tar.xz
+    - LIBTOOL_FILE=${LIBTOOL_URL##*/}
+    - LIBTOOL_DIR=${LIBTOOL_FILE%%.tar*}
 
-compiler:
-  - gcc
-  - clang
-
-before_install:
-  - if [ $TRAVIS_OS_NAME == linux ]; then sudo apt-get install -y git gcc g++ gobjc llvm-dev cmake; fi
+os: linux
+compiler: clang
 
 script:
-  - mkdir -p tmp && TMP=$PWD/tmp && git clone https://github.com/tpoechtrager/apple-libtapi.git && cd apple-libtapi && INSTALLPREFIX=$TMP ./build.sh && ./install.sh && cd .. && cd cctools && ./configure --with-libtapi=$TMP && make
+  - curl -L $LIBTOOL_URL | tar -xJf -
+  - pushd $LIBTOOL_DIR
+  - ./configure --prefix=$TRAVIS_BUILD_DIR
+  - make && make install
+  - popd
+  - export PATH="$TRAVIS_BUILD_DIR/bin:$PATH"
+  - curl -L $SDK_URL -o $SDK_FILE;
+  - cd ./usage_examples/ios_toolchain;
+  - ./build.sh "$TRAVIS_BUILD_DIR/$SDK_FILE" armv7;
+  - tar -czf $HOME/ioscross-linux.tar.gz target
+
+deploy:
+  provider: releases
+  api_key:
+    secure: xvZcO50eFK4FY3af1a9nOBVjWz/c6lmAt5fynNCZTJK8I0QUkBb+TdaLLcGNkK6jpXNnT2fO81Ba7il9Uxr+Ag7vGeXim+JpAtyKIH3n8HlCGzYh/xYetyaFVBZ40r/hHgoQC6ZXb/YJv5WfLoGunDjkTju4oT8aBVvVLgIbncnufX4GKR38Rrarwj81WqprNEf0KvlLJCfKfmAxkaei1ymS1Kq1PefSs/kUawIlz6fuVH8zUxwXSFaSDjGAoFRxdf6BWJ4qy4jcmhWXUVRYZToNKQSA6vREuHe+KQKAXc13Lhdn9tBGyOB1qDxRADoSjgm5F766S/hQghYiDAoIbgasA6s1ybzPNtP7Xdb+g0YYpQTzP/D6RcjyCz67Z3cw52kxKY4I8A1nnRmC0WUcqIZx1hLBjqmqB23CDPqFaVeuN6m196S//lXo6xUuQkjd5pehYCFADv8Cimer3Wn6ScQGcTXCmn7HkQB4dv2ZRqZOPxHQAenyA9SJUTN13+/dVunZ64qfZWa0GcXJMqsy9/4UaAh0ilzSPdTxfPelsiZuFnQiLdblgrldHcOr7Sz3s++tx50OhrGNKjUO60XsgOTHeJ9XTXHK/lM88yoDAgTqkJEbUWC8ajq4jQxKvjdUILqk4fUDlbHFpSGMxqUbkf9vjkNkqUPHlBk2xpMN0Zs=
+  file: $HOME/ioscross-linux.tar.gz
+  on:
+    repo: rraallvv/cctools-port
