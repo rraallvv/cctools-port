@@ -2,7 +2,8 @@ language: cpp
 
 env:
   global:
-    - SDK_URL=https://github.com/rraallvv/AppleSDKPacker/releases/download/xcode6.4/iPhoneOS8.4.sdk.tar.bz2
+    #- SDK_URL=https://github.com/rraallvv/AppleSDKPacker/releases/download/xcode6.4/iPhoneOS8.4.sdk.tar.bz2
+    - SDK_URL=https://github.com/rraallvv/AppleSDKPacker/releases/download/xcode7.3/iPhoneOS9.3.sdk.tar.bz2
     - SDK_FILE=${SDK_URL##*/}
     - LIBTOOL_URL=https://ftp.gnu.org/gnu/libtool/libtool-2.4.6.tar.xz
     - LIBTOOL_FILE=${LIBTOOL_URL##*/}
